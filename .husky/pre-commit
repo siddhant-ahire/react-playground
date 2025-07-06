@@ -2,5 +2,6 @@
 set -x
 . "$(dirname "$0")/_/husky.sh"
 
+echo "Husky pre-commit hook running"
 npm run build
 npx lint-staged
