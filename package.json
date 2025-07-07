@@ -14,6 +14,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@babel/standalone": "^7.28.0",
     "@monaco-editor/react": "^4.7.0",
     "@types/react-router-dom": "^5.3.3",
     "monaco-editor": "^0.52.2",
@@ -35,6 +36,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/babel__standalone": "^7.1.9",
     "@types/jest": "^30.0.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",

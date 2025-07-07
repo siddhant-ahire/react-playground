@@ -6,7 +6,7 @@ const AppRouter: React.FC = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/playground" element={<PlaygroundPage />} />
+        <Route path="/" element={<PlaygroundPage />} />
       </Routes>
     </Router>
   );
