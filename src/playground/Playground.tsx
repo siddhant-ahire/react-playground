@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import * as Babel from '@babel/standalone';
 
