@@ -1,5 +1,6 @@
 {
   "name": "react-playground",
+  "homepage": "https://siddhant-ahire.github.io/react-playground/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,7 +12,9 @@
     "prepare": "husky install",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test": "jest"
+    "test": "jest",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@babel/standalone": "^7.28.0",
@@ -52,6 +55,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "eslint-plugin-storybook": "^9.0.15",
+    "gh-pages": "^6.3.0",
     "globals": "^16.2.0",
     "husky": "^9.1.7",
     "identity-obj-proxy": "^3.0.0",
