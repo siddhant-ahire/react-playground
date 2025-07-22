@@ -1,0 +1,3 @@
+echo "Husky pre-commit hook running"
+npm run test
+npx lint-staged
