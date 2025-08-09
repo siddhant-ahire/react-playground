@@ -26,25 +26,6 @@ function Counter() {
 var root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<Counter />);
 `.trim(),
-  'TodoList.tsx': `
-function TodoList() {
-  const [todos, setTodos] = React.useState([]);
-  const [input, setInput] = React.useState('');
-  return (
-    <div style={{maxWidth: 300, margin: 'auto'}}>
-      <h2>Todo List</h2>
-      <input value={input} onChange={e => setInput(e.target.value)} placeholder="Add todo" />
-      <button onClick={() => { if(input) { setTodos([...todos, input]); setInput(''); } }}>Add</button>
-      <ul>
-        {todos.map((todo, i) => <li key={i}>{todo}</li>)}
-      </ul>
-    </div>
-  );
-}
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<TodoList />);
-`.trim(),
   'Clock.tsx': `
 function Clock() {
   const [time, setTime] = React.useState(new Date());
