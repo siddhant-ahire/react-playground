@@ -100,7 +100,97 @@ const Playground = () => {
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Responsive styles */}
+      <style>{`
+        body { background: #0a0a0a; }
+        .rp-navbar {
+          box-shadow: 0 2px 8px #0002;
+          border-bottom: 1px solid #222;
+        }
+        .rp-navbar-btn {
+          transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+        }
+        .rp-navbar-btn:hover, .rp-navbar-btn:focus {
+          background: #164e63 !important;
+          color: #fff !important;
+          box-shadow: 0 2px 8px #0ea5e988;
+        }
+        .rp-modal-content {
+          box-shadow: 0 8px 40px #000a, 0 1.5px 8px #0ea5e955;
+          border-radius: 16px !important;
+          animation: rp-modal-in 0.18s cubic-bezier(.4,1.4,.6,1) both;
+        }
+        @keyframes rp-modal-in {
+          from { opacity: 0; transform: translateY(40px) scale(0.98); }
+          to { opacity: 1; transform: none; }
+        }
+        .rp-modal-list-btn {
+          font-size: 1.1rem;
+          padding: 14px 10px !important;
+          border-radius: 8px !important;
+          margin-bottom: 2px;
+          transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+        }
+        .rp-modal-list-btn:hover, .rp-modal-list-btn:focus {
+          background: #0ea5e9 !important;
+          color: #fff !important;
+          box-shadow: 0 2px 8px #0ea5e988;
+        }
+        .rp-main {
+          background: linear-gradient(120deg, #18181b 0%, #23272f 100%);
+          border-radius: 0 0 16px 16px;
+          box-shadow: 0 2px 16px #0002;
+        }
+        .rp-editor, .rp-preview {
+          background: #18181b;
+          border-radius: 0 0 0 16px;
+        }
+        .rp-preview {
+          border-radius: 0 0 16px 0;
+        }
+        @media (max-width: 700px) {
+          .rp-navbar {
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 8px !important;
+            border-radius: 0 0 16px 16px;
+          }
+          .rp-navbar-btn {
+            width: 100%;
+            margin-left: 0 !important;
+            border-radius: 4px !important;
+            font-size: 1.1rem;
+            padding: 12px 0 !important;
+          }
+          .rp-modal-content {
+            min-width: 0 !important;
+            width: 97vw !important;
+            max-width: 500px !important;
+            padding: 12px !important;
+            border-radius: 12px !important;
+          }
+          .rp-modal-list-btn {
+            font-size: 1.1rem;
+            padding: 16px 10px !important;
+            border-radius: 8px !important;
+          }
+          .rp-main {
+            flex-direction: column !important;
+            border-radius: 0 0 16px 16px;
+          }
+          .rp-editor, .rp-preview {
+            min-width: 0 !important;
+            width: 100% !important;
+            border-left: none !important;
+            border-top: 1px solid #333 !important;
+            height: 50vh !important;
+            max-height: 50vh !important;
+            border-radius: 0 0 16px 16px !important;
+          }
+        }
+      `}</style>
       <div
+        className="rp-navbar"
         style={{
           padding: '10px',
           background: '#111',
@@ -108,40 +198,62 @@ const Playground = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: 16,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <strong>⚛️ React Playground</strong>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+          <strong
+            style={{
+              fontSize: '1.3rem',
+              wordBreak: 'break-word',
+              letterSpacing: '0.01em',
+              color: '#0ea5e9',
+              textShadow: '0 2px 8px #0ea5e955',
+            }}
+          >
+            ⚛️ React Playground
+          </strong>
           <button
+            className="rp-navbar-btn"
             onClick={() => setModalOpen(true)}
             style={{
               background: '#222',
               color: '#fff',
               border: 'none',
-              padding: '6px 16px',
-              borderRadius: '4px',
+              padding: '10px 18px',
+              borderRadius: '6px',
               fontWeight: 'bold',
               cursor: 'pointer',
               marginLeft: 12,
               borderBottom: '2px solid #0ea5e9',
+              flex: 1,
+              minWidth: 0,
+              boxShadow: '0 1px 4px #0002',
             }}
           >
-            Open Components List
+            <span style={{ fontWeight: 600, fontSize: '1.08em', letterSpacing: '0.01em' }}>
+              📂 Components
+            </span>
           </button>
         </div>
         <button
+          className="rp-navbar-btn"
           onClick={() => runCode()}
           style={{
             background: '#0ea5e9',
             color: '#fff',
             border: 'none',
-            padding: '6px 12px',
-            borderRadius: '4px',
+            padding: '10px 18px',
+            borderRadius: '6px',
             fontWeight: 'bold',
             cursor: 'pointer',
+            minWidth: 0,
+            boxShadow: '0 1px 4px #0ea5e955',
+            fontSize: '1.08em',
+            letterSpacing: '0.01em',
           }}
         >
-          Run ▶️
+          ▶️ Run
         </button>
       </div>
 
@@ -163,15 +275,17 @@ const Playground = () => {
           onClick={() => setModalOpen(false)}
         >
           <div
+            className="rp-modal-content"
             style={{
-              background: '#222',
+              background: '#23272f',
               color: '#fff',
-              borderRadius: 8,
-              padding: 24,
+              borderRadius: 16,
+              padding: 28,
               minWidth: 320,
               maxHeight: '80vh',
               overflowY: 'auto',
-              boxShadow: '0 4px 32px #0008',
+              boxShadow: '0 8px 40px #000a, 0 1.5px 8px #0ea5e955',
+              border: '1.5px solid #0ea5e9',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -180,27 +294,35 @@ const Playground = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: 16,
+                marginBottom: 18,
+                borderBottom: '1px solid #333',
+                paddingBottom: 8,
               }}
             >
-              <h2 style={{ margin: 0, fontSize: 20 }}>Components</h2>
+              <h2 style={{ margin: 0, fontSize: 22, color: '#0ea5e9', letterSpacing: '0.01em' }}>
+                Components
+              </h2>
               <button
                 onClick={() => setModalOpen(false)}
                 style={{
                   background: 'none',
                   color: '#fff',
                   border: 'none',
-                  fontSize: 22,
+                  fontSize: 28,
                   cursor: 'pointer',
+                  padding: 0,
+                  marginLeft: 8,
+                  lineHeight: 1,
                 }}
                 aria-label="Close"
               >
                 ×
               </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {FILE_NAMES.map((file) => (
                 <button
+                  className="rp-modal-list-btn"
                   key={file}
                   onClick={() => {
                     setActiveFile(file);
@@ -211,11 +333,18 @@ const Playground = () => {
                     background: activeFile === file ? '#0ea5e9' : '#333',
                     color: '#fff',
                     border: 'none',
-                    padding: '8px 12px',
-                    borderRadius: 4,
-                    fontWeight: 'bold',
+                    padding: '12px 16px',
+                    borderRadius: 8,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     textAlign: 'left',
+                    width: '100%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    fontSize: '1.08em',
+                    letterSpacing: '0.01em',
+                    boxShadow: activeFile === file ? '0 2px 8px #0ea5e988' : 'none',
                   }}
                 >
                   {file}
@@ -226,8 +355,8 @@ const Playground = () => {
         </div>
       )}
 
-      <div style={{ flex: 1, display: 'flex' }}>
-        <div style={{ flex: 1 }}>
+      <div className="rp-main" style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        <div className="rp-editor" style={{ flex: 1, minWidth: 0 }}>
           <Editor
             defaultLanguage="typescript"
             defaultValue={MODULE_HEADER + FILES[activeFile]}
@@ -264,7 +393,7 @@ const Playground = () => {
             }}
           />
         </div>
-        <div style={{ flex: 1, borderLeft: '1px solid #ccc' }}>
+        <div className="rp-preview" style={{ flex: 1, borderLeft: '1px solid #ccc', minWidth: 0 }}>
           <iframe
             ref={iframeRef}
             title="preview"
