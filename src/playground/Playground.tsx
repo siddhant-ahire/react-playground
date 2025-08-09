@@ -2,24 +2,92 @@ import { useRef, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import * as Babel from '@babel/standalone';
 
-const DEFAULT_CODE = `
+const FILES: Record<string, string> = {
+  'App.tsx': `
 function App() {
   return <h1>Hello React Playground! ⚡</h1>;
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
-`.trim();
+`.trim(),
+  'Counter.tsx': `
+function Counter() {
+  const [count, setCount] = React.useState(0);
+  return (
+    <div style={{textAlign: 'center'}}>
+      <h2>Counter: {count}</h2>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+      <button onClick={() => setCount(count - 1)} style={{marginLeft: 8}}>Decrement</button>
+    </div>
+  );
+}
+
+var root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<Counter />);
+`.trim(),
+  'TodoList.tsx': `
+function TodoList() {
+  const [todos, setTodos] = React.useState([]);
+  const [input, setInput] = React.useState('');
+  return (
+    <div style={{maxWidth: 300, margin: 'auto'}}>
+      <h2>Todo List</h2>
+      <input value={input} onChange={e => setInput(e.target.value)} placeholder="Add todo" />
+      <button onClick={() => { if(input) { setTodos([...todos, input]); setInput(''); } }}>Add</button>
+      <ul>
+        {todos.map((todo, i) => <li key={i}>{todo}</li>)}
+      </ul>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<TodoList />);
+`.trim(),
+  'Clock.tsx': `
+function Clock() {
+  const [time, setTime] = React.useState(new Date());
+  React.useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div style={{textAlign: 'center'}}>
+      <h2>Current Time</h2>
+      <p style={{fontSize: 24}}>{time.toLocaleTimeString()}</p>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<Clock />);
+`.trim(),
+};
+
+const FILE_NAMES = Object.keys(FILES);
+
+const MODULE_HEADER = 'export {}\n';
 
 const Playground = () => {
-  const [code, setCode] = useState(DEFAULT_CODE);
+  const [activeFile, setActiveFile] = useState<string>(FILE_NAMES[0]);
+  const [codeMap, setCodeMap] = useState<Record<string, string>>(
+    Object.fromEntries(Object.entries(FILES).map(([k, v]) => [k, MODULE_HEADER + v])),
+  );
+  const [modalOpen, setModalOpen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const runCode = () => {
+  const runCode = (fileName?: string) => {
+    const fileToRun = fileName || activeFile;
     try {
-      const output = Babel.transform(code, {
+      let code = codeMap[fileToRun];
+      if (code.startsWith(MODULE_HEADER)) {
+        code = code.slice(MODULE_HEADER.length);
+      }
+      const wrappedCode = `(function() {\n${code}\n})();`;
+      const output = Babel.transform(wrappedCode, {
         presets: ['react', 'typescript'],
-        filename: 'file.tsx', // ✅ Fixes the error
+        filename: fileToRun,
       }).code;
 
       const fullHtml = `
@@ -41,10 +109,10 @@ const Playground = () => {
       if (iframeRef.current) {
         iframeRef.current.srcdoc = fullHtml;
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (iframeRef.current) {
-        iframeRef.current.srcdoc = `<pre style="color:red;padding:1rem;">${err?.message}</pre>`;
+        const message = err instanceof Error ? err.message : String(err);
+        iframeRef.current.srcdoc = `<pre style="color:red;padding:1rem;">${message}</pre>`;
       }
     }
   };
@@ -57,12 +125,31 @@ const Playground = () => {
           background: '#111',
           color: '#fff',
           display: 'flex',
+          alignItems: 'center',
           justifyContent: 'space-between',
         }}
       >
-        <strong>⚛️ React Playground</strong>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <strong>⚛️ React Playground</strong>
+          <button
+            onClick={() => setModalOpen(true)}
+            style={{
+              background: '#222',
+              color: '#fff',
+              border: 'none',
+              padding: '6px 16px',
+              borderRadius: '4px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              marginLeft: 12,
+              borderBottom: '2px solid #0ea5e9',
+            }}
+          >
+            Open Components List
+          </button>
+        </div>
         <button
-          onClick={runCode}
+          onClick={() => runCode()}
           style={{
             background: '#0ea5e9',
             color: '#fff',
@@ -77,15 +164,96 @@ const Playground = () => {
         </button>
       </div>
 
+      {/* Modal for file/component selection */}
+      {modalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            style={{
+              background: '#222',
+              color: '#fff',
+              borderRadius: 8,
+              padding: 24,
+              minWidth: 320,
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              boxShadow: '0 4px 32px #0008',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <h2 style={{ margin: 0, fontSize: 20 }}>Components</h2>
+              <button
+                onClick={() => setModalOpen(false)}
+                style={{
+                  background: 'none',
+                  color: '#fff',
+                  border: 'none',
+                  fontSize: 22,
+                  cursor: 'pointer',
+                }}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {FILE_NAMES.map((file) => (
+                <button
+                  key={file}
+                  onClick={() => {
+                    setActiveFile(file);
+                    setModalOpen(false);
+                    setTimeout(() => runCode(file), 0);
+                  }}
+                  style={{
+                    background: activeFile === file ? '#0ea5e9' : '#333',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '8px 12px',
+                    borderRadius: 4,
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  {file}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ flex: 1, display: 'flex' }}>
         <div style={{ flex: 1 }}>
           <Editor
             defaultLanguage="typescript"
-            defaultValue={DEFAULT_CODE}
+            defaultValue={MODULE_HEADER + FILES[activeFile]}
             theme="vs-dark"
-            value={code}
-            onChange={(val) => setCode(val || '')}
-            path="file.tsx" // 👈 This tells Monaco it's a .tsx file
+            value={codeMap[activeFile]}
+            onChange={(val) => setCodeMap((prev) => ({ ...prev, [activeFile]: val || '' }))}
+            path={activeFile}
             options={{
               fontSize: 14,
               minimap: { enabled: false },
