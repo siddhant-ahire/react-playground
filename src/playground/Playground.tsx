@@ -1,65 +1,47 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import * as Babel from '@babel/standalone';
 
-const FILES: Record<string, string> = {
-  'App.tsx': `
-function App() {
-  return <h1>Hello React Playground! ⚡</h1>;
-}
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
-`.trim(),
-  'Counter.tsx': `
-function Counter() {
-  const [count, setCount] = React.useState(0);
-  return (
-    <div style={{textAlign: 'center'}}>
-      <h2>Counter: {count}</h2>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-      <button onClick={() => setCount(count - 1)} style={{marginLeft: 8}}>Decrement</button>
-    </div>
-  );
-}
-
-var root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<Counter />);
-`.trim(),
-  'Clock.tsx': `
-function Clock() {
-  const [time, setTime] = React.useState(new Date());
-  React.useEffect(() => {
-    const id = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(id);
+// Utility to load all .txt files from /src/codes as playground files
+function useCodeFiles() {
+  const [files, setFiles] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const modules = import.meta.glob('/src/codes/*.txt', { as: 'raw', eager: true });
+    const loaded: Record<string, string> = {};
+    Object.entries(modules).forEach(([path, content]) => {
+      // Use filename (without extension) as the display name, but .tsx for Monaco
+      const match = path.match(/\/([^/]+)\.txt$/);
+      if (match) {
+        const name = match[1] + '.tsx';
+        loaded[name] = (content as string).replace(/^```[\w]*\n|```$/g, '').trim();
+      }
+    });
+    setFiles(loaded);
   }, []);
-  return (
-    <div style={{textAlign: 'center'}}>
-      <h2>Current Time</h2>
-      <p style={{fontSize: 24}}>{time.toLocaleTimeString()}</p>
-    </div>
-  );
+  return files;
 }
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<Clock />);
-`.trim(),
-};
-
-const FILE_NAMES = Object.keys(FILES);
 
 const MODULE_HEADER = 'export {}\n';
 
 const Playground = () => {
-  const [activeFile, setActiveFile] = useState<string>(FILE_NAMES[0]);
-  const [codeMap, setCodeMap] = useState<Record<string, string>>(
-    Object.fromEntries(Object.entries(FILES).map(([k, v]) => [k, MODULE_HEADER + v])),
-  );
+  const files = useCodeFiles();
+  const FILE_NAMES = Object.keys(files);
+  const [activeFile, setActiveFile] = useState<string>('');
+  const [codeMap, setCodeMap] = useState<Record<string, string>>({});
   const [modalOpen, setModalOpen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  // When files load, set up codeMap and default active file
+  useEffect(() => {
+    if (FILE_NAMES.length > 0) {
+      setCodeMap(Object.fromEntries(FILE_NAMES.map((k) => [k, MODULE_HEADER + files[k]])));
+      setActiveFile((prev) => (prev && FILE_NAMES.includes(prev) ? prev : FILE_NAMES[0]));
+    }
+  }, [files]);
+
   const runCode = (fileName?: string) => {
     const fileToRun = fileName || activeFile;
+    if (!fileToRun || !codeMap[fileToRun]) return;
     try {
       let code = codeMap[fileToRun];
       if (code.startsWith(MODULE_HEADER)) {
@@ -79,6 +61,7 @@ const Playground = () => {
         <title>Preview</title>
         <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
         <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
       </head>
       <body>
         <div id="root"></div>
@@ -359,9 +342,9 @@ const Playground = () => {
         <div className="rp-editor" style={{ flex: 1, minWidth: 0 }}>
           <Editor
             defaultLanguage="typescript"
-            defaultValue={MODULE_HEADER + FILES[activeFile]}
+            defaultValue={activeFile && codeMap[activeFile] ? codeMap[activeFile] : ''}
             theme="vs-dark"
-            value={codeMap[activeFile]}
+            value={activeFile && codeMap[activeFile] ? codeMap[activeFile] : ''}
             onChange={(val) => setCodeMap((prev) => ({ ...prev, [activeFile]: val || '' }))}
             path={activeFile}
             options={{
