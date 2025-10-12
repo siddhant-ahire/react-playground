@@ -6,11 +6,11 @@ import * as Babel from '@babel/standalone';
 function useCodeFiles() {
   const [files, setFiles] = useState<Record<string, string>>({});
   useEffect(() => {
-    const modules = import.meta.glob('/src/codes/*.txt', { as: 'raw', eager: true });
+    const modules = import.meta.glob('/src/codes/*.jsx', { as: 'raw', eager: true });
     const loaded: Record<string, string> = {};
     Object.entries(modules).forEach(([path, content]) => {
       // Use filename (without extension) as the display name, but .tsx for Monaco
-      const match = path.match(/\/([^/]+)\.txt$/);
+      const match = path.match(/\/([^/]+)\.jsx$/);
       if (match) {
         const name = match[1] + '.tsx';
         loaded[name] = (content as string).replace(/^```[\w]*\n|```$/g, '').trim();
